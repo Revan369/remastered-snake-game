@@ -11,12 +11,14 @@ const snake = {
     dy: 0,
     length: 1,
     body: [{ x: 10, y: 10 }],
+    color: getRandomColor(), // Initial snake color
 };
 
 const food = {
     x: 100,
     y: 100,
     size: 15,
+    color: "#00F", // Initial food color (green)
 };
 
 let enemies = []; // Array to store enemies
@@ -41,6 +43,7 @@ function update() {
         snake.body = [{ x: 10, y: 10 }];
         score = 0;
         enemies = [];
+        resetSnakeColor();
     }
 
     if (checkCollision(snake, food)) {
@@ -58,6 +61,7 @@ function update() {
             enemies.push(newEnemy);
         }
 
+        resetSnakeColor();
         food.x = Math.random() * (canvas.width - food.size);
         food.y = Math.random() * (canvas.height - food.size);
     }
@@ -72,6 +76,7 @@ function update() {
             snake.body = [{ x: 10, y: 10 }];
             score = 0;
             enemies = [];
+            resetSnakeColor();
         }
     }
 
@@ -88,14 +93,14 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw snake body
-    ctx.fillStyle = "#00F";
+    // Draw snake body with flashing color
+    ctx.fillStyle = snake.color;
     for (const segment of snake.body) {
         ctx.fillRect(segment.x, segment.y, snake.size, snake.size);
     }
 
     // Draw food
-    ctx.fillStyle = "#F00";
+    ctx.fillStyle = food.color;
     ctx.fillRect(food.x, food.y, food.size, food.size);
 
     // Draw enemies
@@ -128,11 +133,35 @@ function checkCollision(obj1, obj2) {
     );
 }
 
+function resetSnakeColor() {
+    // Reset the color-changing effect for the snake
+    clearInterval(snake.colorTimer);
+    snake.colorTimer = setInterval(changeSnakeColor, 100); // Change color every 100 milliseconds
+}
+
+function changeSnakeColor() {
+    // Change the snake color to a random color
+    snake.color = getRandomColor();
+}
+
+function getRandomColor() {
+    // Generate a random color in hex format
+    const letters = "0123456789ABCDEF";
+    let color = "#";
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
 canvas.addEventListener("mousedown", handleInput);
 
 function gameLoop() {
     update();
     requestAnimationFrame(gameLoop);
 }
+
+// Initial color-changing effect for the snake
+resetSnakeColor();
 
 gameLoop();
