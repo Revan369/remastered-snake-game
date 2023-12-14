@@ -1,3 +1,4 @@
+// snake.js
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -18,6 +19,8 @@ const food = {
     size: 15,
 };
 
+let enemies = []; // Array to store enemies
+
 let score = 0; // Initial score
 
 function update() {
@@ -37,14 +40,39 @@ function update() {
         snake.length = 1;
         snake.body = [{ x: 10, y: 10 }];
         score = 0;
+        enemies = [];
     }
 
     if (checkCollision(snake, food)) {
         // Snake ate the food - increase length, update score, and randomly place new food
         snake.length++;
         score += 10;
+
+        // Spawn a new enemy every 100 points
+        if (score % 100 === 0) {
+            const newEnemy = {
+                x: Math.random() * (canvas.width - snake.size),
+                y: Math.random() * (canvas.height - snake.size),
+                size: 20,
+            };
+            enemies.push(newEnemy);
+        }
+
         food.x = Math.random() * (canvas.width - food.size);
         food.y = Math.random() * (canvas.height - food.size);
+    }
+
+    // Check for collisions with enemies
+    for (const enemy of enemies) {
+        if (checkCollision(snake, enemy)) {
+            // Game over if the snake collides with an enemy
+            snake.x = 10;
+            snake.y = 10;
+            snake.length = 1;
+            snake.body = [{ x: 10, y: 10 }];
+            score = 0;
+            enemies = [];
+        }
     }
 
     // Update snake body segments
@@ -69,6 +97,12 @@ function draw() {
     // Draw food
     ctx.fillStyle = "#F00";
     ctx.fillRect(food.x, food.y, food.size, food.size);
+
+    // Draw enemies
+    ctx.fillStyle = "#F00";
+    for (const enemy of enemies) {
+        ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
+    }
 }
 
 function updateScore() {
