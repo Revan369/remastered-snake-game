@@ -1,4 +1,3 @@
-// snake.js
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -9,8 +8,8 @@ const snake = {
     speed: 2,
     dx: 0,
     dy: 0,
-    length: 1, // Initial length of the snake
-    body: [{ x: 10, y: 10 }], // Array to store body segments
+    length: 1,
+    body: [{ x: 10, y: 10 }],
 };
 
 const food = {
@@ -18,6 +17,8 @@ const food = {
     y: 100,
     size: 15,
 };
+
+let score = 0; // Initial score
 
 function update() {
     snake.x += snake.dx * snake.speed;
@@ -30,16 +31,18 @@ function update() {
         snake.y < 0 ||
         snake.y + snake.size > canvas.height
     ) {
-        // Game over - reset the snake position and length
+        // Game over - reset the snake position, length, and score
         snake.x = 10;
         snake.y = 10;
         snake.length = 1;
         snake.body = [{ x: 10, y: 10 }];
+        score = 0;
     }
 
     if (checkCollision(snake, food)) {
-        // Snake ate the food - increase length and randomly place new food
+        // Snake ate the food - increase length, update score, and randomly place new food
         snake.length++;
+        score += 10;
         food.x = Math.random() * (canvas.width - food.size);
         food.y = Math.random() * (canvas.height - food.size);
     }
@@ -51,6 +54,7 @@ function update() {
     }
 
     draw();
+    updateScore();
 }
 
 function draw() {
@@ -65,6 +69,11 @@ function draw() {
     // Draw food
     ctx.fillStyle = "#F00";
     ctx.fillRect(food.x, food.y, food.size, food.size);
+}
+
+function updateScore() {
+    const scoreElement = document.getElementById("score");
+    scoreElement.textContent = "Score: " + score;
 }
 
 function handleInput(event) {
