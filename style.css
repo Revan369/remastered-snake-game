@@ -23,3 +23,11 @@ body {
 canvas {
     border: 1px solid #000;
 }
+
+#score, #highScore {
+    font-size: 18px;
+}
+
+#highScore {
+    color: #555;
+}

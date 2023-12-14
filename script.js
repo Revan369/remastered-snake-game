@@ -3,55 +3,45 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const snake = {
-    x: 10,
-    y: 10,
+    x: canvas.width / 2,
+    y: canvas.height / 2,
     size: 20,
     speed: 2,
     dx: 0,
     dy: 0,
     length: 1,
-    body: [{ x: 10, y: 10 }],
-    color: getRandomColor(), // Initial snake color
+    body: [{ x: canvas.width / 2, y: canvas.height / 2 }],
+    color: getRandomColor(),
 };
 
 const food = {
     x: 100,
     y: 100,
     size: 15,
-    color: "#00F", // Initial food color (green)
+    color: "#00F",
 };
 
-let enemies = []; // Array to store enemies
-
-let score = 0; // Initial score
+let enemies = [];
+let score = 0;
+let highScore = localStorage.getItem("highScore") || 0; // Retrieve high score from local storage
 
 function update() {
     snake.x += snake.dx * snake.speed;
     snake.y += snake.dy * snake.speed;
 
-    // Check for collisions
     if (
         snake.x < 0 ||
         snake.x + snake.size > canvas.width ||
         snake.y < 0 ||
         snake.y + snake.size > canvas.height
     ) {
-        // Game over - reset the snake position, length, and score
-        snake.x = 10;
-        snake.y = 10;
-        snake.length = 1;
-        snake.body = [{ x: 10, y: 10 }];
-        score = 0;
-        enemies = [];
-        resetSnakeColor();
+        handleGameOver();
     }
 
     if (checkCollision(snake, food)) {
-        // Snake ate the food - increase length, update score, and randomly place new food
         snake.length++;
         score += 10;
 
-        // Spawn a new enemy every 100 points
         if (score % 100 === 0) {
             const newEnemy = {
                 x: Math.random() * (canvas.width - snake.size),
@@ -66,21 +56,12 @@ function update() {
         food.y = Math.random() * (canvas.height - food.size);
     }
 
-    // Check for collisions with enemies
     for (const enemy of enemies) {
         if (checkCollision(snake, enemy)) {
-            // Game over if the snake collides with an enemy
-            snake.x = 10;
-            snake.y = 10;
-            snake.length = 1;
-            snake.body = [{ x: 10, y: 10 }];
-            score = 0;
-            enemies = [];
-            resetSnakeColor();
+            handleGameOver();
         }
     }
 
-    // Update snake body segments
     snake.body.unshift({ x: snake.x, y: snake.y });
     if (snake.body.length > snake.length) {
         snake.body.pop();
@@ -93,17 +74,14 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw snake body with flashing color
     ctx.fillStyle = snake.color;
     for (const segment of snake.body) {
         ctx.fillRect(segment.x, segment.y, snake.size, snake.size);
     }
 
-    // Draw food
     ctx.fillStyle = food.color;
     ctx.fillRect(food.x, food.y, food.size, food.size);
 
-    // Draw enemies
     ctx.fillStyle = "#F00";
     for (const enemy of enemies) {
         ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
@@ -112,7 +90,43 @@ function draw() {
 
 function updateScore() {
     const scoreElement = document.getElementById("score");
+    const highScoreElement = document.getElementById("highScore");
+
     scoreElement.textContent = "Score: " + score;
+    highScoreElement.textContent = "High Score: " + highScore;
+}
+
+function handleGameOver() {
+    if (score > highScore) {
+        // Update and store the new high score
+        highScore = score;
+        localStorage.setItem("highScore", highScore);
+    }
+
+    // Ask the user to save their score and name
+    const playerName = prompt("Game Over! Enter your name to save your score:", "Player");
+
+    if (playerName) {
+        // Save the player's score and name
+        saveScore(playerName, score);
+        showSavedScore(playerName, score);
+    }
+
+    // Reset the game
+    resetGame();
+}
+
+function resetGame() {
+    // Set the initial position of the snake to the center of the canvas
+    snake.x = canvas.width / 2;
+    snake.y = canvas.height / 2;
+
+    snake.length = 1;
+    snake.body = [{ x: canvas.width / 2, y: canvas.height / 2 }];
+
+    score = 0;
+    enemies = [];
+    resetSnakeColor();
 }
 
 function handleInput(event) {
@@ -134,24 +148,34 @@ function checkCollision(obj1, obj2) {
 }
 
 function resetSnakeColor() {
-    // Reset the color-changing effect for the snake
     clearInterval(snake.colorTimer);
-    snake.colorTimer = setInterval(changeSnakeColor, 100); // Change color every 100 milliseconds
+    snake.colorTimer = setInterval(changeSnakeColor, 100);
 }
 
 function changeSnakeColor() {
-    // Change the snake color to a random color
     snake.color = getRandomColor();
 }
 
 function getRandomColor() {
-    // Generate a random color in hex format
     const letters = "0123456789ABCDEF";
     let color = "#";
     for (let i = 0; i < 6; i++) {
         color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
+}
+
+function saveScore(playerName, playerScore) {
+    // Implement your logic to save the score (e.g., to a server or additional local storage)
+    console.log(`Player: ${playerName}, Score: ${playerScore} - Score saved!`);
+}
+
+function showSavedScore(playerName, playerScore) {
+    // Display the saved score and name below the canvas
+    const savedScoresContainer = document.getElementById("savedScores");
+    const scoreListItem = document.createElement("li");
+    scoreListItem.textContent = `Player: ${playerName}, Score: ${playerScore}`;
+    savedScoresContainer.appendChild(scoreListItem);
 }
 
 canvas.addEventListener("mousedown", handleInput);
@@ -161,7 +185,5 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// Initial color-changing effect for the snake
 resetSnakeColor();
-
 gameLoop();
