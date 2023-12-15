@@ -23,7 +23,28 @@ const food = {
 
 let enemies = [];
 let score = 0;
-let highScore = localStorage.getItem("highScore") || 0; // Retrieve high score from local storage
+let highScore = localStorage.getItem("highScore") || 0;
+
+const topScores = JSON.parse(localStorage.getItem("topScores")) || [];
+
+function updateTopScores(playerName, playerScore) {
+    topScores.push({ playerName, playerScore });
+    topScores.sort((a, b) => b.playerScore - a.playerScore);
+    topScores.splice(5);
+    localStorage.setItem("topScores", JSON.stringify(topScores));
+}
+
+function showTopScores() {
+    const topScoresContainer = document.getElementById("topScores");
+    topScoresContainer.innerHTML = "<h2>Top Scores</h2>";
+
+    for (let i = 0; i < topScores.length; i++) {
+        const { playerName, playerScore } = topScores[i];
+        const scoreListItem = document.createElement("li");
+        scoreListItem.textContent = `${i + 1}. ${playerName}: ${playerScore}`;
+        topScoresContainer.appendChild(scoreListItem);
+    }
+}
 
 function update() {
     snake.x += snake.dx * snake.speed;
@@ -98,26 +119,22 @@ function updateScore() {
 
 function handleGameOver() {
     if (score > highScore) {
-        // Update and store the new high score
         highScore = score;
         localStorage.setItem("highScore", highScore);
     }
 
-    // Ask the user to save their score and name
     const playerName = prompt("Game Over! Enter your name to save your score:", "Player");
 
     if (playerName) {
-        // Save the player's score and name
         saveScore(playerName, score);
         showSavedScore(playerName, score);
     }
 
-    // Reset the game
     resetGame();
+    showTopScores();
 }
 
 function resetGame() {
-    // Set the initial position of the snake to the center of the canvas
     snake.x = canvas.width / 2;
     snake.y = canvas.height / 2;
 
@@ -166,17 +183,15 @@ function getRandomColor() {
 }
 
 function saveScore(playerName, playerScore) {
-    // Implement your logic to save the score (e.g., to a server or additional local storage)
     console.log(`Player: ${playerName}, Score: ${playerScore} - Score saved!`);
 }
 
 function showSavedScore(playerName, playerScore) {
-    // Display the saved score and name below the canvas
-    const savedScoresContainer = document.getElementById("savedScores");
-    const scoreListItem = document.createElement("li");
-    scoreListItem.textContent = `Player: ${playerName}, Score: ${playerScore}`;
-    savedScoresContainer.appendChild(scoreListItem);
+    updateTopScores(playerName, playerScore);
+    showTopScores();
 }
+
+document.addEventListener("DOMContentLoaded", showTopScores);
 
 canvas.addEventListener("mousedown", handleInput);
 
