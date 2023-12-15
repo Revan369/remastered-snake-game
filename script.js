@@ -10,7 +10,7 @@ const snake = {
     dx: 0,
     dy: 0,
     length: 1,
-    body: [{ x: canvas.width / 2, y: canvas.height / 2 }],
+    body: [{ x: canvas.width / 2, y: canvas.height / 2, color: getRandomColor() }],
     color: getRandomColor(),
 };
 
@@ -46,7 +46,21 @@ function showTopScores() {
     }
 }
 
+let growthRate = 3;
+
 function update() {
+    const currentTime = Date.now();
+
+    // Update body segments
+    for (let i = snake.body.length - 1; i > 0; i--) {
+        snake.body[i].x = snake.body[i - 1].x;
+        snake.body[i].y = snake.body[i - 1].y;
+    }
+
+    snake.body[0].x = snake.x;
+    snake.body[0].y = snake.y;
+
+    // Update head position
     snake.x += snake.dx * snake.speed;
     snake.y += snake.dy * snake.speed;
 
@@ -60,7 +74,14 @@ function update() {
     }
 
     if (checkCollision(snake, food)) {
-        snake.length++;
+        // increase the snake's length in growth rate above
+        for (let i = 0; i < growthRate; i++) {
+            snake.body.push({
+                x: snake.body[0].x,
+                y: snake.body[0].y,
+                color: snake.color,
+            }); // add new body segments with the head position
+        }
         score += 10;
 
         if (score % 100 === 0) {
@@ -83,11 +104,6 @@ function update() {
         }
     }
 
-    snake.body.unshift({ x: snake.x, y: snake.y });
-    if (snake.body.length > snake.length) {
-        snake.body.pop();
-    }
-
     draw();
     updateScore();
 }
@@ -95,9 +111,9 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = snake.color;
-    for (const segment of snake.body) {
-        ctx.fillRect(segment.x, segment.y, snake.size, snake.size);
+    for (let i = 0; i < snake.body.length; i++) {
+        ctx.fillStyle = snake.body[i].color;
+        ctx.fillRect(snake.body[i].x, snake.body[i].y, snake.size, snake.size);
     }
 
     ctx.fillStyle = food.color;
@@ -139,7 +155,7 @@ function resetGame() {
     snake.y = canvas.height / 2;
 
     snake.length = 1;
-    snake.body = [{ x: canvas.width / 2, y: canvas.height / 2 }];
+    snake.body = [{ x: canvas.width / 2, y: canvas.height / 2, color: snake.color }];
 
     score = 0;
     enemies = [];
@@ -166,11 +182,21 @@ function checkCollision(obj1, obj2) {
 
 function resetSnakeColor() {
     clearInterval(snake.colorTimer);
-    snake.colorTimer = setInterval(changeSnakeColor, 100);
+    snake.colorTimer = setInterval(changeSnakeColor, 10);
 }
 
 function changeSnakeColor() {
-    snake.color = getRandomColor();
+    const currentTime = Date.now();
+    const colorSpeed = 0.5; // Adjust this value to control the speed of color change
+    const overallRainbowColor = `hsl(${(currentTime * colorSpeed) % 360}, 100%, 50%)`;
+
+    for (let i = 0; i < snake.body.length; i++) {
+        // Use the same time reference for consistent speed
+        const segmentColor = `hsl(${((currentTime * colorSpeed) - i * 5) % 360}, 100%, 50%)`;
+        snake.body[i].color = segmentColor;
+    }
+
+    snake.color = overallRainbowColor;
 }
 
 function getRandomColor() {
@@ -181,7 +207,6 @@ function getRandomColor() {
     }
     return color;
 }
-
 function saveScore(playerName, playerScore) {
     console.log(`Player: ${playerName}, Score: ${playerScore} - Score saved!`);
 }
