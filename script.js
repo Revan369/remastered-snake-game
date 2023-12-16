@@ -109,11 +109,28 @@ function update() {
 }
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Draw green ground
+    ctx.fillStyle = "#00A74A";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw blades of grass
+    ctx.fillStyle = "#00FF00"; // Adjust the color to your preference
+    const grassWidth = 2; // Adjust the width of the grass blades
+    const grassHeight = 15; // Adjust the height of the grass blades
+
+    for (let x = 0; x < canvas.width; x += 20) {
+        const randomHeight = Math.random() * grassHeight;
+        ctx.fillRect(x, canvas.height - randomHeight, grassWidth, randomHeight);
+    }
 
     for (let i = 0; i < snake.body.length; i++) {
-        ctx.fillStyle = snake.body[i].color;
-        ctx.fillRect(snake.body[i].x, snake.body[i].y, snake.size, snake.size);
+        if (i === 0) {
+            // Draw the head with eyes and mouth
+            drawSnakeHead(snake.body[i]);
+        } else {
+            // Draw rounded body segments
+            drawSnakeHexagonSegment(snake.body[i]);
+        }
     }
 
     ctx.fillStyle = food.color;
@@ -124,6 +141,114 @@ function draw() {
         ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
     }
 }
+
+function drawSnakeHexagonSegment(segment) {
+    ctx.fillStyle = segment.color;
+
+    const size = snake.size;
+    const centerX = segment.x + size / 2;
+    const centerY = segment.y + size / 2;
+
+    ctx.beginPath();
+    ctx.moveTo(centerX + size / 2, centerY); // Move to the right point
+
+    // Draw the hexagon
+    for (let i = 1; i <= 6; i++) {
+        const angle = (i * 2 * Math.PI) / 6;
+        const x = centerX + size / 2 * Math.cos(angle);
+        const y = centerY + size / 2 * Math.sin(angle);
+        ctx.lineTo(x, y);
+    }
+
+    ctx.closePath();
+    ctx.fill();
+}
+
+function drawSnakeHead(head) {
+    // Draw the head with eyes and mouth
+    const headSize = snake.size;
+    const pearTopRadius = headSize / 2;
+    const pearBottomRadius = headSize;
+    const pearHeight = headSize * 1.5;
+
+    ctx.fillStyle = head.color;
+
+    if (snake.dx !== 0 || snake.dy !== 0) {
+        const angle = Math.atan2(snake.dy, snake.dx);
+        ctx.translate(head.x + headSize / 2, head.y + headSize / 2);
+        ctx.rotate(angle);
+
+        // Draw pear-shaped head
+        ctx.beginPath();
+        ctx.moveTo(0, -pearHeight / 2);
+        ctx.bezierCurveTo(
+            -pearTopRadius, -pearHeight / 2,
+            -pearTopRadius, pearHeight / 2,
+            0, pearHeight / 2
+        );
+        ctx.bezierCurveTo(
+            pearTopRadius, pearHeight / 2,
+            pearTopRadius, -pearHeight / 2,
+            0, -pearHeight / 2
+        );
+        ctx.fill();
+
+        // Draw circular eyes on the sides
+        const eyeSize = 6; // Adjust the size of the eyes
+        const eyeY = headSize / - 10 - 10; // Adjust the vertical position of the eyes
+        const eyeX = headSize / 10 - -10;
+        const eyeSpacing = headSize / 3 ; // Adjust the horizontal spacing between the eyes
+
+        ctx.fillStyle = "#FFF"; // Eye color
+
+        // Adjusted eye positions
+const rotatedEyeX1 = eyeSpacing;
+const rotatedEyeY1 = eyeY;
+
+const rotatedEyeX2 = eyeSpacing;
+const rotatedEyeY2 = eyeX;
+
+ctx.beginPath();
+ctx.arc(rotatedEyeX1, rotatedEyeY1, eyeSize, 0, 2 * Math.PI);
+ctx.fill();
+
+ctx.beginPath();
+ctx.arc(rotatedEyeX2, rotatedEyeY2, eyeSize, 0, 2 * Math.PI);
+ctx.fill();
+
+// Draw black pupils inside the eyes
+ctx.fillStyle = "#000"; // Pupil color
+
+// Draw left pupil
+const pupilSize = 3; // Adjust the size of the pupils
+ctx.beginPath();
+ctx.arc(rotatedEyeX1, rotatedEyeY1, pupilSize, 0, 2 * Math.PI);
+ctx.fill();
+
+// Draw right pupil
+ctx.beginPath();
+ctx.arc(rotatedEyeX2, rotatedEyeY2, pupilSize, 0, 2 * Math.PI);
+ctx.fill();
+
+        // Draw mouth based on the direction
+        ctx.fillStyle = "#000"; // Mouth color
+        const mouthSize = 4;
+        if (snake.dx > 0) {
+            ctx.fillRect(0, headSize / 4 - mouthSize / 2, 2, mouthSize);
+        } else if (snake.dx < 0) {
+            ctx.fillRect(0, -headSize / 4 - mouthSize / 2, 2, mouthSize);
+        } else if (snake.dy > 0) {
+            ctx.fillRect(headSize / 4 - mouthSize / 2, 0, mouthSize, 2);
+        } else if (snake.dy < 0) {
+            ctx.fillRect(-headSize / 4 - mouthSize / 2, 0, mouthSize, 2);
+        }
+
+        // Reset the transformation
+        ctx.rotate(-angle);
+        ctx.translate(-head.x - headSize / 2, -head.y - headSize / 2);
+    }
+}
+   
 
 function updateScore() {
     const scoreElement = document.getElementById("score");
