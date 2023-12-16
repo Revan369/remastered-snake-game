@@ -47,6 +47,7 @@ function showTopScores() {
 }
 
 let growthRate = 3;
+let spawnEnemyTimeout;
 
 function update() {
     const currentTime = Date.now();
@@ -85,12 +86,21 @@ function update() {
         score += 10;
 
         if (score % 100 === 0) {
-            const newEnemy = {
-                x: Math.random() * (canvas.width - snake.size),
-                y: Math.random() * (canvas.height - snake.size),
-                size: 20,
-            };
-            enemies.push(newEnemy);
+            if (spawnEnemyTimeout) {
+                clearTimeout(spawnEnemyTimeout);
+            }
+
+            // Set a timeout to spawn the enemy a few seconds later
+            spawnEnemyTimeout = setTimeout(() => {
+                // Set the enemy position behind the snake's tail
+                const tail = snake.body[snake.body.length - 1];
+                const newEnemy = {
+                    x: tail.x,
+                    y: tail.y,
+                    size: 20,
+                };
+                enemies.push(newEnemy);
+            }, 3000); // Adjust the delay time (in milliseconds) as needed
         }
 
         resetSnakeColor();
