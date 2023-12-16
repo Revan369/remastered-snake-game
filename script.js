@@ -121,6 +121,8 @@ function update() {
     updateScore();
 }
 
+
+
 function draw() {
     // Draw green ground
     ctx.fillStyle = "#00A74A";
@@ -149,10 +151,17 @@ function draw() {
     ctx.fillStyle = food.color;
     ctx.fillRect(food.x, food.y, food.size, food.size);
 
-    ctx.fillStyle = "#F00";
-    for (const enemy of enemies) {
-        ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
-    }
+    // Assuming "funny-shit.gif" is in the same directory as your HTML file
+const enemyImage = new Image();
+enemyImage.onload = function() {
+
+};
+enemyImage.src = "poo-flies.gif";
+
+for (const enemy of enemies) {
+    // Draw the image at the enemy's position
+    ctx.drawImage(enemyImage, enemy.x, enemy.y, enemy.size *2, enemy.size*2);
+}
 }
 
 function drawSnakeHexagonSegment(segment) {
@@ -360,6 +369,7 @@ canvas.addEventListener("mousedown", handleInput);
 
 function gameLoop() {
     update();
+    draw();
     requestAnimationFrame(gameLoop);
 }
 
