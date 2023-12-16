@@ -48,7 +48,7 @@ function showTopScores() {
 
 let growthRate = 3;
 let spawnEnemyTimeout;
-
+let delayTime = 2000; // Initial delay time in milliseconds
 function update() {
     const currentTime = Date.now();
 
@@ -100,7 +100,10 @@ function update() {
                     size: 20,
                 };
                 enemies.push(newEnemy);
-            }, 3000); // Adjust the delay time (in milliseconds) as needed
+
+                // Increase the delay time by 10 seconds
+            delayTime += 10;
+            }, delayTime); // Adjust the delay time (in milliseconds) as needed
         }
 
         resetSnakeColor();
